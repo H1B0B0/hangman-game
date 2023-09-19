@@ -43,12 +43,12 @@ To run the Hangman game, follow these steps:
     ````pip install openai click````
 
 4. Set up your OpenAI API key as an environment variable:
-    - Linux:````export OPENAI=your-api-key````
-    - Windows:````setx OPENAI "Variable value"````
+    - Linux: ````export OPENAI=your-api-key````
+    - Windows: ````setx OPENAI "Variable value"````
 
 5. Run the game:
-    - Linux:````python3 hangman.py````
-    - Windows:````py -3 hangman.py````
+    - Linux: ````python3 hangman.py````
+    - Windows: ````py -3 hangman.py````
 
 ## Usage
 
