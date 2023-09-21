@@ -3,8 +3,34 @@ import click
 import openai
 import configparser
 
-# Define the Hangman class
 class hangman:
+    """
+    The `hangman` class is a Python class that represents a Hangman game. It allows the user to start the game, set the language of the word, select a random word, and play the game by guessing letters of the word. The class keeps track of the player's score, the word to guess, and the hidden word with guessed letters.
+
+    Example Usage:
+    hangman_game = hangman()
+    hangman_game.start_game()  # Asks the user if they want to start the game
+    hangman_game.set_language()  # Asks the user if they want to set the language of the word
+    hangman_game.select_random_word()  # Selects a random word
+    hangman_game.ingame()  # Plays the Hangman game
+
+    Methods:
+    - __init__: Initializes the instance variables of the `hangman` class.
+    - start_game: Asks the user if they want to start the game.
+    - set_language: Asks the user if they want to set the language of the word.
+    - select_random_word: Selects a random word and initializes the hidden word with underscores.
+    - ingame: Allows the user to play the Hangman game by guessing letters of the word.
+    - get_completion: Uses OpenAI to get a word completion based on a prompt.
+    - number_to_words: Converts a number to words.
+
+    Fields:
+    - point: Player's score.
+    - word: The word to guess.
+    - hidden_word: The word with guessed letters hidden.
+    - openai_key: OpenAI API key.
+    - cfg: ConfigParser object to read and write configuration data.
+    - saved_data: List to store saved data from the configuration file.
+    """
     def __init__(self) -> None:
         # Initialize instance variables
         self.point = 0                  # Player's score
@@ -85,6 +111,7 @@ class hangman:
         return number_words.get(num, str(num))
         
     # Method to play the Hangman game
+
     def ingame(self):
         for element in self.saved_data:
             for key in element:
@@ -96,18 +123,19 @@ class hangman:
             if len(entry_result) > 1:
                 if entry_result.lower() == self.word.lower():
                     try:
-                        if int(self.cfg["hangman"][self.word.lower()]) > self.point:
+                        record = self.cfg["hangman"].get(self.word.lower())
+                        if record is None or int(record) > self.point:
                             click.echo(click.style(f"Best ever!!! You've guessed {self.word.upper()} in {self.point} attempts.", fg="green"))
-                        else:
+                            self.cfg["hangman"][self.word.lower()] = str(self.point)  # Update the record only if the current score is better
+                        elif int(record) < self.point:
                             lastpoint = self.cfg["hangman"][self.word.lower()]
                             click.echo(click.style(f"You've guessed {self.word.upper()} in {self.point} attempts. The record is {lastpoint} attempts.", fg="green"))
+                        else: 
+                            click.echo(click.style(f"{self.word.upper()}: correct guess\nCongratulations!", fg="green"))
+                            self.cfg["hangman"][self.word.lower()] = str(self.point)
                     except:
                         click.echo(click.style(f"{self.word.upper()}: correct guess\nCongratulations!", fg="green"))
-                    for key in self.cfg['hangman']:  
-                        if key != self.word.lower():
-                            self.cfg["hangman"][self.word.lower()] = str(self.point)
-                        else:
-                            self.cfg.set("hangman", self.word.lower(), str(self.point))
+                        self.cfg["hangman"][self.word.lower()] = str(self.point)
                     with open('config.cfg', 'w') as configfile:
                         self.cfg.write(configfile)
                     exit()
@@ -133,28 +161,28 @@ class hangman:
                         self.ingame()
                     else:
                         try:
-                            if int(self.cfg["hangman"][self.word.lower()]) > self.point:
+                            record = self.cfg["hangman"].get(self.word.lower())
+                            if record is None or int(record) > self.point:
                                 click.echo(click.style(f"Best ever!!! You've guessed {self.word.upper()} in {self.point} attempts.", fg="green"))
-                            else:
+                                self.cfg["hangman"][self.word.lower()] = str(self.point)  # Update the record only if the current score is better
+                            elif int(record) < self.point:
                                 lastpoint = self.cfg["hangman"][self.word.lower()]
                                 click.echo(click.style(f"You've guessed {self.word.upper()} in {self.point} attempts. The record is {lastpoint} attempts.", fg="green"))
+                            else: 
+                                click.echo(click.style(f"{self.word.upper()}: correct guess\nCongratulations!", fg="green"))
+                                self.cfg["hangman"][self.word.lower()] = str(self.point)
                         except:
                             click.echo(click.style(f"{self.word.upper()}: correct guess\nCongratulations!", fg="green"))
-                        for key in self.cfg['hangman']:  
-                            if key != self.word.lower():
-                                self.cfg["hangman"][self.word.lower()] = str(self.point)
-                            else:
-                                self.cfg.set("hangman", self.word.lower(), str(self.point))
+                            self.cfg["hangman"][self.word.lower()] = str(self.point)
+
                         with open('config.cfg', 'w') as configfile:
                             self.cfg.write(configfile)
                         exit()
         else: 
             click.echo(click.style(f"GAME OVER\nThe word was: {self.word}", fg="red"))
-            for key in self.cfg['hangman']:  
-                if key != self.word.lower():
-                    self.cfg["hangman"][self.word.lower()] = str(self.point)
-                else:
-                    self.cfg.set("hangman", self.word.lower(), str(self.point))
+            record = self.cfg["hangman"].get(self.word.lower())
+            if record is None or int(record) < self.point:
+                self.cfg["hangman"][self.word.lower()] = str(self.point)  # Update the record only if it's better than the previous score
             with open('config.cfg', 'w') as configfile:
                 self.cfg.write(configfile)
             exit()
