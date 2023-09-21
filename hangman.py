@@ -1,6 +1,7 @@
 import os
 import click
 import openai
+import configparser
 
 # Define the Hangman class
 class hangman:
@@ -11,7 +12,14 @@ class hangman:
         self.hidden_word = []           # The word with guessed letters hidden
         openai_key = os.environ.get("OPENAI")   # Get OpenAI API key from environment variables
         openai.api_key = openai_key
-        pass
+        self.cfg = configparser.ConfigParser()
+        self.saved_data = []
+        try:
+            self.cfg.read("config.cfg")
+        except:
+            pass
+        for key in self.cfg["hangman"]:
+            self.saved_data.append({key:self.cfg.get("hangman", key)})
 
     # Method to start the game
     def start_game(self):
@@ -35,6 +43,9 @@ class hangman:
     def select_random_word(self):
         self.word = self.get_completion(prompt="Give me just one random word.")
         self.save_words = list(self.word.lower())
+        if not self.cfg.has_section("hangman"):
+            self.cfg.add_section("hangman")
+        self.cfg["hangman"] = {self.word.lower() : 0}
         for i in range(len(self.word)):
             self.hidden_word.append("_")
         
@@ -42,6 +53,9 @@ class hangman:
     def select_random_word_with_langage(self, langage):
         self.word = self.get_completion(prompt=f"Give me just one random word in {langage} language. Don't translate the word. Don't return punctuation.")
         self.save_words = list(self.word.lower())
+        if not self.cfg.has_section("hangman"):
+            self.cfg.add_section("hangman")
+        self.cfg["hangman"] = {self.word.lower() : 0}
         for i in range(len(self.word)):
             self.hidden_word.append("_")
         
@@ -72,13 +86,31 @@ class hangman:
         
     # Method to play the Hangman game
     def ingame(self):
+        for element in self.saved_data:
+            for key in element:
+                self.cfg.set("hangman", key, element[key])
         if self.point < 11:
             counter = 0
             click.echo(click.style(f"{' '.join(self.hidden_word)} / {self.point} point{'s' if self.point > 1 else ''}", fg='blue'))
             entry_result = input()
             if len(entry_result) > 1:
                 if entry_result.lower() == self.word.lower():
-                    click.echo(click.style(f"{self.word.upper()}: correct guess\nCongratulations!\n{self.point} point{'s' if self.point > 1 else ''}", fg="green"))
+                    try:
+                        if int(self.cfg["hangman"][self.word.lower()]) > self.point:
+                            click.echo(click.style(f"Best ever!!! You've guessed {self.word.upper()} in {self.point} attempts.", fg="green"))
+                        else:
+                            lastpoint = self.cfg["hangman"][self.word.lower()]
+                            click.echo(click.style(f"You've guessed {self.word.upper()} in {self.point} attempts. The record is {lastpoint} attempts.", fg="green"))
+                    except:
+                        click.echo(click.style(f"{self.word.upper()}: correct guess\nCongratulations!", fg="green"))
+                    for key in self.cfg['hangman']:  
+                        if key != self.word.lower():
+                            self.cfg["hangman"][self.word.lower()] = str(self.point)
+                        else:
+                            self.cfg.set("hangman", self.word.lower(), str(self.point))
+                    with open('config.cfg', 'w') as configfile:
+                        self.cfg.write(configfile)
+                    exit()
                 else: 
                     click.echo(click.style("Bad word retry", fg="red"))
                     self.point += 1
@@ -100,10 +132,31 @@ class hangman:
                         click.echo(click.style(f"Found {self.number_to_words(counter)} '{entry_result.upper()}'", fg="green"))
                         self.ingame()
                     else:
-                        click.echo(click.style(f"{self.word.upper()}: correct guess\nCongratulations!", fg="green"))
+                        try:
+                            if int(self.cfg["hangman"][self.word.lower()]) > self.point:
+                                click.echo(click.style(f"Best ever!!! You've guessed {self.word.upper()} in {self.point} attempts.", fg="green"))
+                            else:
+                                lastpoint = self.cfg["hangman"][self.word.lower()]
+                                click.echo(click.style(f"You've guessed {self.word.upper()} in {self.point} attempts. The record is {lastpoint} attempts.", fg="green"))
+                        except:
+                            click.echo(click.style(f"{self.word.upper()}: correct guess\nCongratulations!", fg="green"))
+                        for key in self.cfg['hangman']:  
+                            if key != self.word.lower():
+                                self.cfg["hangman"][self.word.lower()] = str(self.point)
+                            else:
+                                self.cfg.set("hangman", self.word.lower(), str(self.point))
+                        with open('config.cfg', 'w') as configfile:
+                            self.cfg.write(configfile)
                         exit()
         else: 
             click.echo(click.style(f"GAME OVER\nThe word was: {self.word}", fg="red"))
+            for key in self.cfg['hangman']:  
+                if key != self.word.lower():
+                    self.cfg["hangman"][self.word.lower()] = str(self.point)
+                else:
+                    self.cfg.set("hangman", self.word.lower(), str(self.point))
+            with open('config.cfg', 'w') as configfile:
+                self.cfg.write(configfile)
             exit()
 
 # Entry point for the script
