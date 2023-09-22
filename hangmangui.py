@@ -79,8 +79,9 @@ class gui(customtkinter.CTk):
             button.configure(state="normal")
 
         # Clear the hangman drawing
-        self.hangmanlabel.configure(text="")
+        self.hangmanlabel.configure(image=None, text="")
         self.titleletter.configure(text="")
+        self.current_hangman_stage = 0
 
         # Show the "Start a game" button again and hide the "Restart" button
         self.startgamebutton.pack()
