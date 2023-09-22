@@ -1,6 +1,7 @@
 import customtkinter
 from hangman import hangman
 from tkinter import messagebox
+from PIL import Image
 
 
 
@@ -19,9 +20,9 @@ class gui(customtkinter.CTk):
         self.buttonframe = customtkinter.CTkFrame(self)
         self.entryframe = customtkinter.CTkFrame(self)
         self.entry = customtkinter.CTkEntry(self.entryframe)
-        self.hangman_canvas = customtkinter.CTkCanvas(self.hangmanframe)
         self.buttonsubmit = customtkinter.CTkButton(self.entryframe, text="submit", command=self.submit_clicked)
         self.restart_button = customtkinter.CTkButton(self.titleframe, text="Restart", command=self.restart_game)
+        self.hangmanlabel = customtkinter.CTkLabel(self.hangmanframe, text="")
         self.resizable(False, False)
         for i in range(26):
             letter = chr(65+i)
@@ -38,105 +39,14 @@ class gui(customtkinter.CTk):
         self.entryframe.grid(column=0,columnspan=2, row=4, sticky="nswe", padx=5, pady=2)
         self.entry.grid(column=0, columnspan=1, row=0, padx=2, pady=2, sticky="w")
         self.buttonsubmit.grid(column=1, columnspan=1, row=0, padx=2, pady=2, sticky="e")
-        self.hangman_canvas.pack(padx=5, pady=2)
+        self.hangmanlabel.pack(padx=5, pady=2)
         self.current_hangman_stage = 0
-        self.hangman_drawings = [
-
-                        """
-                        ============
-                        """,
-                        """ 
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                            |
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                            |
-                            |
-                            |
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                        +---+
-                            |
-                            |
-                            |
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                        +---+
-                        |   |
-                            |
-                            |
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                        +---+
-                        |   |
-                        O   |
-                            |
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                        +---+
-                        |   |
-                        O   |
-                        |   |
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                        +---+
-                        |   |
-                        O   |
-                       /|   |
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                        +---+
-                        |   |
-                        O   |
-                       /|\\  |
-                            |
-                            |
-                        ============
-                        """,
-                        """
-                        +---+
-                        |   |
-                        O   |
-                       /|\\  |
-                       /    |
-                            |
-                        ============
-                        """,
-                        """
-                        +---+
-                        |   |
-                        O   |
-                       /|\\  |
-                       / \\  |
-                            |
-                        ============
-                        """
-                    ]
+        self.image_list = []
+        for i in range(11):
+            my_image = customtkinter.CTkImage(light_image=Image.open(f"img/img{i}.png"),
+                                        dark_image=Image.open(f"img/img{i}.png"),
+                                        size=(200, 200))
+            self.image_list.append(my_image)
 
     def send_letter(self, letter):
         result = self.hangman.ingamegui(letter)
@@ -169,15 +79,12 @@ class gui(customtkinter.CTk):
             button.configure(state="normal")
 
         # Clear the hangman drawing
-        self.hangman_canvas.delete("all")
-
-        # Clear the word and message labels
-        self.titlegame.configure(text="")
+        self.hangmanlabel.configure(text="")
         self.titleletter.configure(text="")
 
         # Show the "Start a game" button again and hide the "Restart" button
         self.startgamebutton.pack()
-        self.titlegame(text="Hangman-game")
+        self.titlegame.configure(text="Hangman-game")
         self.restart_button.pack_forget()
 
     def submit_clicked(self):
@@ -193,12 +100,10 @@ class gui(customtkinter.CTk):
 
     # Add this method to update the hangman drawing
     def update_hangman(self):
-        if self.current_hangman_stage < len(self.hangman_drawings):
-            hangman_drawing = self.hangman_drawings[self.current_hangman_stage]
-            self.hangman_canvas.delete("all")
-            self.hangman_canvas.create_text(100, 100, text=hangman_drawing, anchor="center", font=("courier", 12))
+        if self.current_hangman_stage < len(self.image_list):
+            self.hangmanlabel.configure(image=self.image_list[self.current_hangman_stage-1], text="")
         else:
-            # Handle game over when hangman is fully drawn
+            self.hangmanlabel.configure(image=self.image_list[self.current_hangman_stage-1], text="")
             pass
 
     def start_game(self):

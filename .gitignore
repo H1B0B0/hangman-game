@@ -1,1 +1,3 @@
-config.cfg
+/config.cfg
+__pycache__/hangman.cpython-311.pyc
+__pycache__/
