@@ -69,7 +69,6 @@ class gui(customtkinter.CTk):
             # Disable the letter button
             self.disable_letter_button(letter)
 
-
     def restart_game(self):
         # Reset the hangman object
         self.hangman = hangman()
@@ -116,11 +115,28 @@ class gui(customtkinter.CTk):
             self.titlegame.configure(text=' '.join(self.word[2]))
             self.startgamebutton.pack_forget()
             self.titleletter.pack(pady=10, padx=5)
+            self.check_point_status()
         else:
             self.word = self.hangman.select_random_word()
             self.titlegame.configure(text=' '.join(self.word[2]))
             self.startgamebutton.pack_forget()
             self.titleletter.pack(pady=10, padx=5)
+            self.check_point_status()
+
+    def check_point_status(self):
+        if self.hangman.point >= 11:
+            result = self.hangman.ingamegui("*")
+            if result["message"]:
+                self.titleletter.configure(text=result["message"])  # You can replace this with updating a label or messagebox
+            if result["update_word"]:
+                self.titlegame.configure(text=' '.join(self.word[2]))
+            if result["game_over"]:
+                self.restart_button.pack(padx=5, pady=5)
+        else:
+            self.after(50, self.check_point_status)
+                
+            
+
 
 if __name__=="__main__":
     hangmangui = gui()
