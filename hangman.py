@@ -44,8 +44,11 @@ class hangman:
             self.cfg.read("config.cfg")
         except:
             pass
-        for key in self.cfg["hangman"]:
-            self.saved_data.append({key:self.cfg.get("hangman", key)})
+        try:
+            for key in self.cfg["hangman"]:
+                self.saved_data.append({key:self.cfg.get("hangman", key)})
+        except:
+            self.cfg.add_section("hangman")
 
     # Method to start the game
     def start_game(self):
